@@ -1,0 +1,17 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Strava Connection</title>
+<style>body{font-family:system-ui,sans-serif;max-width:900px;margin:0 auto;padding:16px;background:#fff;color:#111}
+.k{display:flex;gap:12px;flex-wrap:wrap}.k div{flex:1;min-width:120px;padding:12px;border:1px solid #ddd;border-radius:8px}
+.k b{display:block;font-size:1.6em}@media(prefers-color-scheme:dark){body{background:#111;color:#eee}.k div{border-color:#444}}</style>
+</head><body><h1>Training dashboard</h1>
+<div class="k"><div><b>100</b>activities</div><div><b>158 h</b>moving time</div>
+<div><b>1249 km</b>distance</div><div><b>37945 m</b>climbed</div></div>
+<h2>Weekly hours</h2><canvas id="a"></canvas><h2>Weekly running km</h2><canvas id="b"></canvas>
+<h2>Hours by sport</h2><canvas id="c"></canvas><h2>Road run pace (min/km)</h2><canvas id="d"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>const D={"weeks": ["2026-06-08", "2026-06-15", "2026-06-22", "2026-06-29", "2026-07-06", "2026-07-13", "2026-07-20", "2026-07-27", "2026-08-03", "2026-08-10", "2026-08-17", "2026-08-24", "2026-08-31", "2026-09-07", "2026-09-14", "2026-09-21", "2026-09-28", "2026-10-05", "2026-10-12", "2026-10-19", "2026-10-26", "2026-11-02", "2026-11-09"], "hours": [7.18, 8.44, 10.6, 3.17, 3.14, 3.97, 11.08, 8.98, 14.93, 4.05, 8.73, 2.04, 17.41, 2.51, 5.36, 16.79, 5.79, 3.33, 6.81, 1.98, 2.09, 3.29, 6.52], "runKm": [0.0, 10.8, 21.3, 14.6, 0.0, 18.9, 14.6, 6.0, 20.1, 0.0, 25.0, 10.5, 8.0, 15.5, 4.0, 4.5, 35.4, 23.2, 23.4, 18.2, 18.0, 23.6, 20.0], "sports": ["Hike", "Ride", "TrailRun", "Run", "WeightTraining", "HighIntensityIntervalTraining", "Swim", "MountainBikeRide"], "sportHours": [75.4, 29.1, 20.4, 19.5, 8.0, 3.8, 1.1, 1.0], "runDates": ["2026-06-23", "2026-07-02", "2026-07-14", "2026-07-16", "2026-07-23", "2026-07-29", "2026-08-04", "2026-08-06", "2026-08-19", "2026-08-20", "2026-08-21", "2026-08-26", "2026-09-01", "2026-09-10", "2026-09-11", "2026-09-29", "2026-10-06", "2026-10-09", "2026-10-14", "2026-10-16", "2026-10-20", "2026-10-22", "2026-10-27", "2026-10-30", "2026-11-03", "2026-11-04", "2026-11-05", "2026-11-10"], "runPace": [5.74, 5.79, 5.58, 5.32, 5.35, 5.62, 5.32, 5.55, 5.64, 5.24, 5.46, 5.75, 5.33, 5.23, 5.73, 5.77, 5.54, 4.82, 5.75, 5.64, 5.69, 4.95, 5.77, 5.55, 5.86, 5.5, 5.25, 5.65]};
+new Chart(a,{type:'bar',data:{labels:D.weeks,datasets:[{label:'hours',data:D.hours}]}});
+new Chart(b,{type:'bar',data:{labels:D.weeks,datasets:[{label:'km',data:D.runKm,backgroundColor:'#2a9d4a'}]}});
+new Chart(c,{type:'bar',data:{labels:D.sports,datasets:[{label:'hours',data:D.sportHours}]},options:{indexAxis:'y'}});
+new Chart(d,{type:'line',data:{labels:D.runDates,datasets:[{label:'min/km',data:D.runPace,borderColor:'#e63946'}]},options:{scales:{y:{reverse:true}}}});
+</script></body></html>
