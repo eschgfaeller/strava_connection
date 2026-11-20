@@ -1,0 +1,41 @@
+"""Build a static dashboard (index.html) from data/activities.csv for Vercel."""
+import json
+from pathlib import Path
+
+import pandas as pd
+
+df = pd.read_csv("data/activities.csv", parse_dates=["start_local"])
+df["hours"] = df.moving_s / 3600
+df["week"] = df.start_local.dt.to_period("W-SUN").dt.start_time
+weeks = pd.date_range(df.week.min(), df.week.max(), freq="W-MON")
+wk = df.groupby("week").hours.sum().reindex(weeks, fill_value=0).round(2)
+rk = (df[df.sport_type.isin(["Run", "TrailRun"])].groupby("week").distance_km.sum()
+      .reindex(weeks, fill_value=0).round(1))
+sp = df.groupby("sport_type").hours.sum().sort_values(ascending=False).round(1)
+runs = df[df.sport_type == "Run"].sort_values("start_local")
+data = {
+    "weeks": [d.strftime("%Y-%m-%d") for d in weeks], "hours": wk.tolist(), "runKm": rk.tolist(),
+    "sports": sp.index.tolist(), "sportHours": sp.tolist(),
+    "runDates": runs.start_local.dt.strftime("%Y-%m-%d").tolist(),
+    "runPace": (runs.moving_s / 60 / runs.distance_km).round(2).tolist(),
+}
+tot = {"n": len(df), "h": round(df.hours.sum()), "km": round(df.distance_km.sum()), "elev": round(df.elevation_m.sum())}
+html = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Strava Connection</title>
+<style>body{{font-family:system-ui,sans-serif;max-width:900px;margin:0 auto;padding:16px;background:#fff;color:#111}}
+.k{{display:flex;gap:12px;flex-wrap:wrap}}.k div{{flex:1;min-width:120px;padding:12px;border:1px solid #ddd;border-radius:8px}}
+.k b{{display:block;font-size:1.6em}}@media(prefers-color-scheme:dark){{body{{background:#111;color:#eee}}.k div{{border-color:#444}}}}</style>
+</head><body><h1>Training dashboard</h1>
+<div class="k"><div><b>{tot['n']}</b>activities</div><div><b>{tot['h']} h</b>moving time</div>
+<div><b>{tot['km']} km</b>distance</div><div><b>{tot['elev']} m</b>climbed</div></div>
+<h2>Weekly hours</h2><canvas id="a"></canvas><h2>Weekly running km</h2><canvas id="b"></canvas>
+<h2>Hours by sport</h2><canvas id="c"></canvas><h2>Road run pace (min/km)</h2><canvas id="d"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>const D={json.dumps(data)};
+new Chart(a,{{type:'bar',data:{{labels:D.weeks,datasets:[{{label:'hours',data:D.hours}}]}}}});
+new Chart(b,{{type:'bar',data:{{labels:D.weeks,datasets:[{{label:'km',data:D.runKm,backgroundColor:'#2a9d4a'}}]}}}});
+new Chart(c,{{type:'bar',data:{{labels:D.sports,datasets:[{{label:'hours',data:D.sportHours}}]}},options:{{indexAxis:'y'}}}});
+new Chart(d,{{type:'line',data:{{labels:D.runDates,datasets:[{{label:'min/km',data:D.runPace,borderColor:'#e63946'}}]}},options:{{scales:{{y:{{reverse:true}}}}}}}});
+</script></body></html>"""
+Path("index.html").write_text(html)
+print("wrote index.html")
